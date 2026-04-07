@@ -81,5 +81,5 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
   client.login(token);
 }
 
-startBot(process.env.TOKEN1, MESSAGE1, 100, recentlySent1, sentMessages1);
+startBot(process.env.TOKEN1, MESSAGE1, 0, recentlySent1, sentMessages1);
 startBot(process.env.TOKEN2, MESSAGE2, 500, recentlySent2, sentMessages2);
