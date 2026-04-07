@@ -81,5 +81,5 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
   client.login(token);
 }
 
-startBot('MTQ5MDA1NzYxNjA1NDAyNjMwMQ.GHWpKO.LKdQv0Hq_IPNiH3P0VfItXnC2KbdxuJ0I9-QiA', MESSAGE1, 100, recentlySent1, sentMessages1);
-startBot('MTQ5MDA4NTYyMzMwNDgxNDY5NQ.GEzz9Q.Q94-1ZzgIeEolNLWRL44H0gfECxQGSXaLJAJqA', MESSAGE2, 500, recentlySent2, sentMessages2);
+startBot(process.env.TOKEN1, MESSAGE1, 100, recentlySent1, sentMessages1);
+startBot(process.env.TOKEN2, MESSAGE2, 500, recentlySent2, sentMessages2);
