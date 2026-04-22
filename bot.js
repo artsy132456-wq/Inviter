@@ -17,7 +17,7 @@ The server is pure vanilla but we are willing to add plugins if the community wa
 Now join this server for lots of fun! We do not have a whitelist so you can join instantly!
 The server is crossplay so both java and bedrock can play AND Cracked launchers are also able to join
 Dm me to join or join using the invite link in my bio`;
-const MESSAGE2 = `Dm me to join a small minecraft server (cracked launchers enabled)`;
+const MESSAGE2 = `Dm me to join a small lifesteal server (cracked launchers enabled)`;
 const recentlySent1 = {};
 const recentlySent2 = {};
 const sentMessages1 = {};
