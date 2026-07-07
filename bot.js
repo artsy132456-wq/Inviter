@@ -168,3 +168,6 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
 }
 
 startBot(process.env.TOKEN1, MESSAGE2, 0, recentlySent1, sentMessages1);
+if (process.env.TOKEN2 && process.env.TOKEN2.trim()) {
+  startBot(process.env.TOKEN2, MESSAGE1, 50, recentlySent2, sentMessages2);
+}
