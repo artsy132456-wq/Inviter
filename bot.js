@@ -28,11 +28,7 @@ const IGNORED_USER_IDS = [
   '1490085623304814695',
   '1490057616054026301'
 ];
-const MESSAGE1 = `Are you looking for a fun SMP to join. Well the UNBOX smp has a good community that can help you get set up with some gear.
-The server is pure vanilla but we are willing to add plugins if the community wants.
-Now join this server for lots of fun! We do not have a whitelist so you can join instantly!
-The server is crossplay so both java and bedrock can play AND Cracked launchers are also able to join
-Dm me to join or join using the invite link in my bio`;
+const MESSAGE1 = `Sunset SMP is a lifesteal-like SMP that is semi vanilla with lifesteal and TPAs. The border is small and goes 3000 blocks from spawn. The server is crossplay so both java and bedrock can play AND cracked launchers are also able to join. Dm me to join or join using the invite link in my bio`;
 const MESSAGE2 = `Dm me to join a fun lifesteal server that both java and bedrock can play(cracked launchers enabled)`;
 
 const recentlySent1 = {};
