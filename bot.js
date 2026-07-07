@@ -31,7 +31,6 @@ The server is crossplay so both java and bedrock can play AND Cracked launchers 
 Dm me to join or join using the invite link in my bio`;
 const MESSAGE2 = `Dm me to join a fun lifesteal server that both java and bedrock can play(cracked launchers enabled)`;
 
-// Use Maps instead of plain objects, with a max size cap
 const recentlySent1 = {};
 const recentlySent2 = {};
 const sentMessages1 = new Map();
@@ -39,7 +38,6 @@ const sentMessages2 = new Map();
 
 const MAX_SENT_MESSAGES = 300;
 
-// Discord error codes that mean we'll never be able to post there
 const FATAL_CODES = new Set([50013, 50001, 40001, 20001, 20002]);
 
 function isFatalError(err) {
@@ -51,6 +49,7 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
   const client = new Client();
   const channelCache = new Map();
   const deadChannels = new Set();
+  const lastSent = new Map(); // track when we last sent per channel
 
   async function getChannel(channelId) {
     if (!channelCache.has(channelId)) {
@@ -59,35 +58,58 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
     return channelCache.get(channelId);
   }
 
+  // Returns how many ms we need to wait before sending in a channel (0 = can send now)
+  function getSlowmodeWait(channel) {
+    const slowmode = channel.rateLimitPerUser || 0;
+    if (slowmode === 0) return 0;
+    const last = lastSent.get(channel.id) || 0;
+    const wait = (last + slowmode * 1000) - Date.now();
+    return wait > 0 ? wait : 0;
+  }
+
+  async function sendWithSlowmode(channel, msg) {
+    const wait = getSlowmodeWait(channel);
+    if (wait > 0) {
+      console.log(`[SLOWMODE] ${channel.id} - waiting ${Math.ceil(wait / 1000)}s`);
+      await new Promise(res => setTimeout(res, wait));
+    }
+    const sent = await channel.send(msg);
+    lastSent.set(channel.id, Date.now());
+    return sent;
+  }
+
   client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}`);
 
-    // Pre-cache all channels on startup
     await Promise.all(CHANNEL_IDS.map(id => getChannel(id).catch(() => null)));
 
-    // Check all channels in parallel so 19 fetches run simultaneously, not sequentially
-    setInterval(async () => {
-      await Promise.all(CHANNEL_IDS.map(async (channelId) => {
-        if (deadChannels.has(channelId)) return;
-        try {
-          const channel = await getChannel(channelId);
-          const fetchedMessages = await channel.messages.fetch({ limit: 1 });
-          const latestMsg = fetchedMessages.first();
+    const scheduleInterval = () => {
+      const jitter = Math.floor(Math.random() * 600) - 300; // -300 to +300
+      setTimeout(async () => {
+        await Promise.all(CHANNEL_IDS.map(async (channelId) => {
+          if (deadChannels.has(channelId)) return;
+          try {
+            const channel = await getChannel(channelId);
+            const fetchedMessages = await channel.messages.fetch({ limit: 1 });
+            const latestMsg = fetchedMessages.first();
 
-          if (latestMsg && latestMsg.author.id !== client.user.id && !IGNORED_USER_IDS.includes(latestMsg.author.id)) {
-            await channel.send(message);
-            console.log(`Resent in ${channelId} because ${latestMsg.author.tag} had latest message`);
+            if (latestMsg && latestMsg.author.id !== client.user.id && !IGNORED_USER_IDS.includes(latestMsg.author.id)) {
+              await sendWithSlowmode(channel, message);
+              console.log(`Resent in ${channelId} because ${latestMsg.author.tag} had latest message`);
+            }
+          } catch (err) {
+            if (isFatalError(err)) {
+              deadChannels.add(channelId);
+              console.log(`[SKIP] Channel ${channelId} blocked for this session: ${err.message}`);
+            } else {
+              console.error(`Failed to check ${channelId}:`, err.message);
+            }
           }
-        } catch (err) {
-          if (isFatalError(err)) {
-            deadChannels.add(channelId);
-            console.log(`[SKIP] Channel ${channelId} blocked for this session: ${err.message}`);
-          } else {
-            console.error(`Failed to check ${channelId}:`, err.message);
-          }
-        }
-      }));
-    }, 1500);
+        }));
+        scheduleInterval();
+      }, 2000 + jitter);
+    };
+    scheduleInterval();
 
     setInterval(() => {
       while (sentMessages.size > MAX_SENT_MESSAGES) {
@@ -109,7 +131,8 @@ function startBot(token, message, delayMs, tracker, sentMessages) {
 
     const send = async () => {
       try {
-        const sent = await msg.channel.send(message);
+        const channel = await getChannel(msg.channelId);
+        const sent = await sendWithSlowmode(channel, message);
         if (sentMessages.size >= MAX_SENT_MESSAGES) {
           sentMessages.delete(sentMessages.keys().next().value);
         }
